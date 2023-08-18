@@ -10,10 +10,9 @@ from typing import Optional
 
 #Import de discord et modules discord
 import discord 
-from discord import app_commands
+from discord import app_commands, Webhook
 from discord.ext import tasks
 from discord.gateway import DiscordWebSocket, _log
-
 #Import des API
 import blagues_api as bl
 import brawlapi as brst
@@ -59,9 +58,14 @@ async def identify(self):
 load_dotenv()
 DISCORD_TOKEN = os.getenv("discord_token")
 bs_token = os.getenv("bs_api_token")
-# Do not post your token on a public github!
-bsclient = brst.BrawlApi() 
-bssession = bsclient.BrawlSession(str(bs_token))
+
+class bssession(brst.BrawlApi):
+    def __init__(self):
+        super().__init__()
+
+# Do not post your token on a public github!        
+bssession.BrawlSession(token=str(bs_token), self=bssession())
+bsclient=bssession
 
 # client def
 class MyClient(discord.Client):
@@ -240,6 +244,7 @@ async def kick(interaction: discord.Interaction, member: discord.Member, reason:
         await member.kick(reason=reason)
         await interaction.response.send_message(f"{member.display_name} ({member.id}) a bien été kick pour la raison suivante :\n{reason}", ephemeral=True)
         channel = await client.fetch_channel(1130945537907114139)
+        webhook = discord.Webhook()
         await channel.send(content=f"{member.mention} a été kick du serveur par {interaction.user.name}") #type: ignore
 
 @client.tree.command(name="sync", description="[MODERATION] permet de synchroniser le tree")
@@ -248,7 +253,6 @@ async def sync(interaction: discord.Interaction):
     await client.tree.sync(guild=guild_id1)
     await client.tree.sync()
     await interaction.response.send_message("le tree a été correctement synchronisé !", ephemeral=True)
-
 @client.tree.command(name="verify", description="[BETA] permet de se vérifier sur le serveur", guild=guild_id1)
 @app_commands.describe(file="une capture d'écran de votre profil Brawl Stars")
 @app_commands.rename(file="fichier")
@@ -272,11 +276,11 @@ class verifyview(discord.ui.View):
         super().__init__()
     @discord.ui.button(label="Valider", style=discord.ButtonStyle.green)
     async def on_click1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        role = discord.utils.get(interaction.guild.roles, id=1104312217224085556) #type: ignore
+        role = await discord.utils.get(interaction.guild.roles, id=1104312217224085556) #type: ignore
         emb = discord.Embed(title="Félicitation", description=f"tu as été accepté sur {self.interaction.guild.name}!", timestamp=datetime.datetime.now(), color=discord.Color.green())
         emb.set_author(name=f"{self.interaction.guild.name}", url=self.interaction.guild.icon)
         emb.set_footer(text=client.user, icon_url=client.user.avatar)
-        await interaction.user.edit(roles=[role])
+        await interaction.user.edit(roles=role)
         await self.e.send(embed=emb)
     
     @discord.ui.button(label="Invalider", style=discord.ButtonStyle.red)
@@ -290,8 +294,8 @@ class verifyview(discord.ui.View):
 @app_commands.describe(tag="l'identifiant du compte Brawl Stars")
 async def bs(interaction: discord.Interaction, tag: str):
     netplayer = tag.upper()
-    playername = bsclient.get_player(netplayer)
-    playerprofile = await bsclient.get_profile(tag=netplayer)
+    playername = await bssession.get_player(tag=netplayer, self=bssession())
+    playerprofile = await bssession.get_profile(tag=netplayer, self=bssession())
 
     title = "\n========Profil de " + "{"f"{playername}""}" + "========"
 
@@ -332,8 +336,7 @@ class ReportModal(discord.ui.Modal, title="signalement"):
     async def on_submit(self, interaction: discord.Interaction):
         textinput = self.textinput
         chat = await client.fetch_channel(int(1130945538406240405))
-        emb=discord.Embed(title="signalement", description=f"{interaction.user.display_name} vient de créer un signalement :\n\nMembre signalé : {self.msg.author.display_name}\n\nRaison : {textinput}\n\nPreuve : {self.msg.content}\n\n\n [aller au message]({self.msg.jump_url})", color = discord.Color.green(), timestamp=datetime.datetime.now())
-        emb.set_author(name=f"{client.user}", icon_url=f"{boticonurl}")
+        emb=discord.Embed(title="signalement", description=f"{interaction.user.display_name} vient de créer un signalement :\n\nMembre signalé : {self.msg.author.display_name}\n\nRaison : {textinput}\n\nPreuve : {self.msg.content}\n\n\n{self.msg.jump_url}", color = discord.Color.green(), timestamp=datetime.datetime.now())
         emb.set_thumbnail(url=f"{interaction.user.avatar}") # type: ignore
         emb.set_footer(text=client.user, icon_url=client.user.avatar)
         #send embed to mod chat
@@ -365,42 +368,49 @@ async def pins(interaction: discord.Interaction, message: discord.Message):
 #auto events
 @client.event
 async def on_message_edit(before, after):
-    channel = client.get_channel(1140742110614654976)
-    emb = discord.Embed(title="Message modifié",description=f"**{after.author.display_name}** edited their message:\n{before.content} -> {after.content}", timestamp=datetime.datetime.now())
-    emb.set_author(icon_url=after.author.display_avatar, name=after.author.name)
-    emb.set_footer(text=client.user, icon_url=client.user.avatar)
-    await channel.send(embed=emb)
+    if before.author == client.user:
+        return
+    else:
+        channel = client.get_channel(1140742110614654976)
+        emb = discord.Embed(title="Message modifié",description=f"**{after.author.display_name}** a édité son message:", timestamp=datetime.datetime.now())
+        emb.set_author(name="",icon_url="https://cdn.discordapp.com/attachments/1139849206308278364/1142035263590236261/DiscordEdited.png")
+        emb.add_field(name="avant", value=before.content, inline=True)
+        emb.add_field(name="après", value=after.content, inline=True)
+        emb.set_thumbnail(url=after.author.display_avatar)
+        emb.set_footer(text=client.user, icon_url=client.user.avatar)
+        await channel.send(embed=emb)
 
 @client.event
 async def on_message_delete(message: discord.Message):
-    embed=discord.Embed(title="{} deleted a message".format(message.author.display_name), 
-    description="", color=discord.Color.brand_red())
-    embed.add_field(name= message.content ,value="This is the message that he has 
-    deleted", 
-    inline=True)
-    channel=client.get_channel(channel_id)
-await channel.send(embed=embed)
-
+    if message.author == client.user:
+        return
+    else:
+        async for msg in message.guild.audit_logs(action=discord.AuditLogAction.message_delete, limit=1):
+            delete_by = "{0.user}".format(msg).replace("#0","")
+            emb=discord.Embed(title=f"{delete_by} a supprimé un message", description=message.content, color=discord.Color.brand_red())
+            emb.add_field(name='Channel', value=message.channel.jump_url)
+            channel=client.get_channel(1140742110614654976)
+            await channel.send(embed=emb)
 
 @client.event
 async def on_member_remove(member: discord.Member):
     channel=client.get_channel(1130945537907114139)
     emb=discord.Embed(title="Au revoir!", description=f"Notre confrère pain {member.name} vient de brûler... Nous lui faisons nos plus sincères adieux. :saluting_face:", color = discord.Color.red(), timestamp=datetime.datetime.now())
     emb.set_footer(text=client.user, icon_url=client.user.avatar)
-    await channel.send(content=member.mention, embed=emb, silent=True) # type: ignore
+    await channel.send(content=member.mention, embed=emb, silent=True)
 
 @client.event
 async def on_member_join(member: discord.Member):
     emb=discord.Embed(title="Nouveau Pain!", description=f"Un nouveau pain vient de sortir du four ! Bienvenue sur {member.guild.name} {member.display_name}! :french_bread:", color = discord.Color.green(), timestamp=datetime.datetime.now())
     emb.set_footer(text=client.user, icon_url=client.user.avatar)
     channel = client.get_channel(1130945537907114139)
-    await channel.send(content=member.mention, embed=emb, silent=True) # type: ignore
+    await channel.send(content=member.mention, embed=emb, silent=True)
 
 #login check + bot login events
 @client.event
 async def on_ready():
     print("="*10 + " Build Infos " + "="*10)
-    print(f"Connecté en tant que {client.user.display_name} ({client.user.id})") #type: ignore
+    print(f"Connecté en tant que {client.user.display_name} ({client.user.id})")
     print(f"Discord info : {discord.version_info.releaselevel}")
     activity = discord.Activity(type = discord.ActivityType.watching, name=f"Astra Academy")
     await client.change_presence(activity=activity, status=discord.Status.online)
