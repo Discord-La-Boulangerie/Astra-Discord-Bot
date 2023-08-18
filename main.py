@@ -415,4 +415,14 @@ async def on_ready():
     activity = discord.Activity(type = discord.ActivityType.watching, name=f"Astra Academy")
     await client.change_presence(activity=activity, status=discord.Status.online)
 
+@client.tree.command(name="clubdesc", description = "Genere la page de pésentation des clubs", guild=guild_id1)
+async def test(interaction: discord.Interaction):
+
+    astraclubemb = discord.Embed(title ="<:astra:1141793383011061820> **__Astra:star:__** <:astra:1141793383011061820>", description = "<:gdc:1141793179729932308> League: <:masters:1141792989681823804>\nPrésident: <@793183664858071040>\n\n", color = discord.Color.orange(), timestamp=datetime.datetime.now())
+    astraclubemb.add_field(name="<:astra:1141793383011061820> **__Astra Academy__** <:astra:1141793383011061820>", value="<:gdc:1141793179729932308> League: <:bronze:1141793095789326356>I\nPrésident: <@911467405115535411>")
+    icon_class = "https://cdn-old.brawlify.com/profile/28000020.png"
+    astraclubemb.set_thumbnail(url = icon_class)
+    await interaction.response.send_message("message envoyé!", ephemeral=True)
+    await interaction.channel.send(embed = astraclubemb)
+
 client.run(str(DISCORD_TOKEN))
