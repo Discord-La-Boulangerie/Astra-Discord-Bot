@@ -116,12 +116,12 @@ class staff(discord.ui.Modal, title="Candidature"):
 #send embed to mod chat
         await channel.send(embed=emb) #type: ignore
 
-@client.tree.command(name = "staff_app", description = "[MODERATION] postuler dans la modération, grâce à cette commande, c'est facile.")
+@client.tree.command(name = "staff_app", description = "[MODERATION] postuler dans la modération, grâce à cette commande, c'est facile.", guild=guild_id1)
 async def staff_app(interaction: discord.Interaction):
     await interaction.response.send_modal(staff())
 
 #sendrule
-@client.tree.command(name = "sendrule", description = "[MODERATION]permet d'envoyer l'embed du règlement.") #Add the guild ids in which the slash command will appear. If it should be in all, remove the argument, but note that it will take some time (up to an hour) to register the command if it's for all guilds.
+@client.tree.command(name = "sendrule", description = "[MODERATION]permet d'envoyer l'embed du règlement.", guild=guild_id1) #Add the guild ids in which the slash command will appear. If it should be in all, remove the argument, but note that it will take some time (up to an hour) to register the command if it's for all guilds.
 @app_commands.default_permissions(manage_guild=True)
 async def sendrule(interaction: discord.Interaction):
     channel=client.get_channel(1130945537907114137)
@@ -129,11 +129,11 @@ async def sendrule(interaction: discord.Interaction):
     emb.set_author(name="Wishrito", url="https://discordapp.com/users/911467405115535411", icon_url=f"{interaction.user.avatar}") # type: ignore
     emb.set_thumbnail(url="https://cdn.discordapp.com/icons/1115588576340606978/a_d2b27f21b84bc1b5c000b05d408a76ef.gif?size=96")        
     #send embed to rules chat
-    await channel.send(embed=emb) #type: ignore
+    await channel.send(embed=emb)
     await interaction.response.send_message("envoyé!", ephemeral=True)
 
 #rps
-@client.tree.command(name="rps", description="[FUN][BETA] Shi-Fu-Mi")
+@client.tree.command(name="rps", description="[FUN][BETA] Shi-Fu-Mi", guild=guild_id1)
 @app_commands.choices(choix=[
     app_commands.Choice(name="Rock", value="rock"),
     app_commands.Choice(name="Paper", value="paper"),
@@ -168,7 +168,7 @@ class SimpleView(discord.ui.View):
         self.add_item(discord.ui.Button(label=f'photo de profil de {user.display_name}', url=url))
 
 #sanctions system
-@client.tree.command(name ="ban", description = "[MODERATION][BETA] bannit un utilisateur spécifié") #Add the guild ids in which the slash command will appear. If it should be in all, remove the argument, but note that it will take some time (up to an hour) to register the command if it's for all guilds.
+@client.tree.command(name ="ban", description = "[MODERATION][BETA] bannit un utilisateur spécifié", guild=guild_id1) #Add the guild ids in which the slash command will appear. If it should be in all, remove the argument, but note that it will take some time (up to an hour) to register the command if it's for all guilds.
 @app_commands.rename(member="membre")
 @app_commands.describe(member="l'utilisateur à ban")
 @app_commands.rename(reason="raison")
@@ -247,7 +247,7 @@ async def kick(interaction: discord.Interaction, member: discord.Member, reason:
         webhook = discord.Webhook()
         await channel.send(content=f"{member.mention} a été kick du serveur par {interaction.user.name}") #type: ignore
 
-@client.tree.command(name="sync", description="[MODERATION] permet de synchroniser le tree")
+@client.tree.command(name="sync", description="[MODERATION] permet de synchroniser le tree", guild=guild_id1)
 @app_commands.default_permissions(manage_guild=True)
 async def sync(interaction: discord.Interaction):
     await client.tree.sync(guild=guild_id1)
