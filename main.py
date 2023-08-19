@@ -94,14 +94,14 @@ class LABS:
 @app_commands.guild_only()
 class MyGroup(app_commands.Group):
     pass
-@disclient.tree.command(name="", guild=guild_id1)
+@disclient.tree.command(name="test", guild=guild_id1)
 async def club(self):
     club = await self.bs.get_club("VP2RL8P")
     embed = discord.Embed(description = club.description, colour = discord.Colour.blue())
     embed.set_author(name = club.name, icon_url = club.badge_url)
-    embed.add_field(name = "Status", value = club.status)
-    embed.add_field(name = "Members", value = str(club.members_count) + "/100")
-    embed.add_field(name = "Status", value = club.status)
+    
+    embed.add_field(name = "Members", value = str(len(club.members)) + "/30")
+    
     await self.bot.say(embed = embed)
 
 @disclient.tree.command(name="brawl_stars_info", description="[BETA] permet d'obtenir des infos sur un compte Brawl Stars", guild=guild_id1)
@@ -188,8 +188,8 @@ async def profil(interaction: discord.Interaction, user: discord.Member):
 
     # Output
     emb = discord.Embed(title=f"Profil de {user.display_name}", description=f"Date de création du compte :\n> le {user.created_at.day}/{user.created_at.month}/{user.created_at.year} à {user.created_at.hour}h{user.created_at.minute}\nBadges :\n{badges_class}", color=user.color)
-    emb.set_thumbnail(url=user.display_avatar)
-    emb.set_footer(text=disclient.user, icon_url=disclient.user.avatar)
+    emb.set_thumbnail(url = user.display_avatar)
+    emb.set_footer(text = disclient.user, icon_url = disclient.user.avatar)
     await interaction.response.send_message(embed=emb, ephemeral=True, view=SimpleView(url=user.avatar.url, user=user)) #type: ignore
 class SimpleView(discord.ui.View):
     def __init__(self, user, url):
@@ -426,18 +426,4 @@ async def on_ready():
     activity = discord.Activity(type = discord.ActivityType.watching, name=f"Astra Academy")
     await disclient.change_presence(activity=activity, status=discord.Status.online)
 
-<<<<<<< Updated upstream
-@client.tree.command(name="clubdesc", description = "Genere la page de pésentation des clubs", guild=guild_id1)
-async def test(interaction: discord.Interaction):
-
-    astraclubemb = discord.Embed(title ="<:astra:1141793383011061820> **__Astra:star:__** <:astra:1141793383011061820>", description = "<:gdc:1141793179729932308> League: <:masters:1141792989681823804>\nPrésident: <@793183664858071040>\n\n", color = discord.Color.orange(), timestamp=datetime.datetime.now())
-    astraclubemb.add_field(name="<:astra:1141793383011061820> **__Astra Academy__** <:astra:1141793383011061820>", value="<:gdc:1141793179729932308> League: <:bronze:1141793095789326356>I\nPrésident: <@911467405115535411>")
-    icon_class = "https://cdn-old.brawlify.com/profile/28000020.png"
-    astraclubemb.set_thumbnail(url = icon_class)
-    await interaction.response.send_message("message envoyé!", ephemeral=True)
-    await interaction.channel.send(embed = astraclubemb)
-
-client.run(str(DISCORD_TOKEN))
-=======
 disclient.run(str(DISCORD_TOKEN))
->>>>>>> Stashed changes
