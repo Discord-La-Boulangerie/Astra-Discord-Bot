@@ -91,9 +91,6 @@ class LABS:
         self.client = disclient
         self.bs = brst.Client('token', is_async=True)
 
-@app_commands.guild_only()
-class MyGroup(app_commands.Group):
-    pass
 @disclient.tree.command(name="test", guild=guild_id1)
 async def club(self):
     club = await self.bs.get_club("VP2RL8P")
@@ -110,21 +107,21 @@ async def brawl(interaction: discord.Interaction, tag: str):
     connector = aiohttp.TCPConnector(use_dns_cache=False)
     bs = brst.Client(token=bs_token, connector=connector)
     netplayer = tag.upper()
+    
     try:
         player = await bs.get_player(tag=netplayer)
     except brst.NotFoundError as e:  # catches all exceptions
         await interaction.response.send_message(f"{e.code}, {e.message}", ephemeral=True)  # sends code and error message
-
-
-    playername = str(player)
-    print(playername.removeprefix("").removesuffix(""))
-    icon_class = str(playername.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
-    emb = discord.Embed(title = f"infos de {playername}", description = f"Tag : {playername.tag}\nTrophées: {playername.trophies} Record personnel: {player.highest_trophies}", timestamp = datetime.datetime.now(),color = player.namecolor)
-    emb.add_field(name="Victoires", value=f"Victoires en Solo: {playername.solo_victories}\nVictoires en Duo: {playername.duo_victories}\nVictoires en 3v3: {player.x3vs3_victories}")
-    emb.add_field(name="Brawlers", value=f"Nombre de Brawlers: {len(playername.brawlers)}\n", inline=True)
-    emb.set_footer(text=disclient.user, icon_url=disclient.user.avatar)
-    emb.set_thumbnail(url=icon_class)
-    await interaction.response.send_message(embed=emb, ephemeral=True)
+    else:
+        playername = str(player)
+        print(playername.removeprefix("").removesuffix(""))
+        icon_class = str(playername.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
+        emb = discord.Embed(title = f"infos de {playername}", description = f"Tag : {playername.tag}\nTrophées: {playername.trophies} Record personnel: {player.highest_trophies}", timestamp = datetime.datetime.now(),color = player.namecolor)
+        emb.add_field(name="Victoires", value=f"Victoires en Solo: {playername.solo_victories}\nVictoires en Duo: {playername.duo_victories}\nVictoires en 3v3: {player.x3vs3_victories}")
+        emb.add_field(name="Brawlers", value=f"Nombre de Brawlers: {len(playername.brawlers)}\n", inline=True)
+        emb.set_footer(text=disclient.user, icon_url=disclient.user.avatar)
+        emb.set_thumbnail(url=icon_class)
+        await interaction.response.send_message(embed=emb, ephemeral=True)
 
 ##commands
 #ping
