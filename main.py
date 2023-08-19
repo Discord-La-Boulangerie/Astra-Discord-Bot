@@ -15,7 +15,7 @@ from discord.ext import tasks
 from discord.gateway import DiscordWebSocket, _log
 #Import des API
 import blagues_api as bl
-import brawlapi as brst
+import brawlstats as brst
 #paramètres
 
 #mobile status
