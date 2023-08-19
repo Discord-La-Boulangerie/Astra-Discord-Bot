@@ -99,9 +99,9 @@ async def club(self):
     club = await self.bs.get_club("VP2RL8P")
     embed = discord.Embed(description = club.description, colour = discord.Colour.blue())
     embed.set_author(name = club.name, icon_url = club.badge_url)
-    
+    embed.add_field(name = "Status", value = club.status)
     embed.add_field(name = "Members", value = str(len(club.members)) + "/30")
-    
+    embed.add_field(name = "Status", value = club.status)
     await self.bot.say(embed = embed)
 
 @disclient.tree.command(name="brawl_stars_info", description="[BETA] permet d'obtenir des infos sur un compte Brawl Stars", guild=guild_id1)
@@ -226,8 +226,8 @@ async def ban(interaction: discord.Interaction, member: discord.Member, reason:O
 @app_commands.default_permissions(manage_guild=True)
 async def clubdesc(interaction: discord.Interaction):
 
-    astraclubemb = discord.Embed(title =":astra: **__Astra⭐__** :astra:", description = ":gdc: League: :masters:\nPrésident: <@793183664858071040>\n\n", color = discord.Color.orange(), timestamp=datetime.datetime.now())
-    astraclubemb.add_field(name=":astra: **__Astra Academy__** :astra:", value=":gdc: League: :bronze:I\nPrésident: <@911467405115535411>")
+    astraclubemb = discord.Embed(title ="<:astra:1141773764854562816>  **__Astra⭐__** <:astra:1141773764854562816> ", description = "<:gdc:1141774959291670692>  League: <:masters:1141775863537471568> \nPrésident: <@793183664858071040>\n\n", color = discord.Color.orange(), timestamp=datetime.datetime.now())
+    astraclubemb.add_field(name="<:astra:1141773764854562816>  **__Astra Academy__** <:astra:1141773764854562816> ", value="<:gdc:1141774959291670692>  League: <:bronze:1141777141512548475>I\nPrésident: <@911467405115535411>")
     icon_class = "https://cdn-old.brawlify.com/profile/28000020.png"
     astraclubemb.set_thumbnail(url = icon_class)
     await interaction.response.send_message("message envoyé!", ephemeral=True)
@@ -406,7 +406,7 @@ async def on_message_delete(message: discord.Message):
 @disclient.event
 async def on_member_remove(member: discord.Member):
     channel=disclient.get_channel(1130945537907114139)
-    emb=discord.Embed(title="Au revoir!", description=f"Notre confrère pain {member.name} vient de brûler... Nous lui faisons nos plus sincères adieux. :saluting_face:", color = discord.Color.red(), timestamp=datetime.datetime.now())
+    emb=discord.Embed(title="Au revoir!", description=f"Notre confrère {member.name} vient de partir... Nous lui faisons nos plus sincères adieux. :saluting_face:", color = discord.Color.red(), timestamp=datetime.datetime.now())
     emb.set_footer(text=disclient.user, icon_url=disclient.user.avatar)
     await channel.send(content=member.mention, embed=emb, silent=True)
 
