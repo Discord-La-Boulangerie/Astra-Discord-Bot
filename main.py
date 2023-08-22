@@ -4,7 +4,6 @@ import datetime
 import json
 import random
 import asyncio
-import aiohttp
 
 from dotenv import load_dotenv
 from typing import Optional
@@ -61,6 +60,14 @@ DISCORD_TOKEN = os.getenv("discord_token")
 bs_token = os.getenv("bs_api_token")
 
 
+
+#class permaview(discord.ui.View):
+#    def __init__(self):
+#        super().__init__(timeout=None)
+#    @discord.ui.button(label="Liste des membres de Astra", style=discord.ButtonStyle.green)
+#    async def on_click1(self, interaction: discord.Interaction, button: discord.ui.Button):
+#        return
+
 # disclient def
 class MyClient(discord.Client):
     def __init__(self, *, intents: discord.Intents):
@@ -73,11 +80,11 @@ class MyClient(discord.Client):
         # Note: When using commands.Bot instead of discord.Client, the bot will
         # maintain its own tree instead.
         self.tree = app_commands.CommandTree(self)
-
     # In this basic example, we just synchronize the app commands to one guild.
     # Instead of specifying a guild to every command, we copy over our global commands instead.
     # By doing so, we don't have to wait up to an hour until they are shown to the end-user.
     async def setup_hook(self):
+#        self.add_view(permaview())
         await self.tree.sync(guild=guild_id1)
         await self.tree.sync()
 
@@ -86,42 +93,6 @@ disclient = MyClient(intents=intents)
 guild_id = 1104309851775049728
 guild_id1 = discord.Object(id=guild_id)
 DiscordWebSocket.identify = identify
-class LABS:
-    def __init__(self, disclient):
-        self.client = disclient
-        self.bs = brst.Client('token', is_async=True)
-
-@disclient.tree.command(name="test", guild=guild_id1)
-async def club(self):
-    club = await self.bs.get_club("VP2RL8P")
-    embed = discord.Embed(description = club.description, colour = discord.Colour.blue())
-    embed.set_author(name = club.name, icon_url = club.badge_url)
-    embed.add_field(name = "Status", value = club.status)
-    embed.add_field(name = "Members", value = str(len(club.members)) + "/30")
-    embed.add_field(name = "Status", value = club.status)
-    await self.bot.say(embed = embed)
-
-@disclient.tree.command(name="brawl_stars_info", description="[BETA] permet d'obtenir des infos sur un compte Brawl Stars", guild=guild_id1)
-@app_commands.describe(tag="l'identifiant du compte Brawl Stars")
-async def brawl(interaction: discord.Interaction, tag: str):
-    connector = aiohttp.TCPConnector(use_dns_cache=False)
-    bs = brst.Client(token=bs_token, connector=connector)
-    netplayer = tag.upper()
-    
-    try:
-        player = await bs.get_player(tag=netplayer)
-    except brst.NotFoundError as e:  # catches all exceptions
-        await interaction.response.send_message(f"{e.code}, {e.message}", ephemeral=True)  # sends code and error message
-    else:
-        playername = str(player)
-        print(playername.removeprefix("").removesuffix(""))
-        icon_class = str(playername.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
-        emb = discord.Embed(title = f"infos de {playername}", description = f"Tag : {playername.tag}\nTrophées: {playername.trophies} Record personnel: {player.highest_trophies}", timestamp = datetime.datetime.now(),color = player.namecolor)
-        emb.add_field(name="Victoires", value=f"Victoires en Solo: {playername.solo_victories}\nVictoires en Duo: {playername.duo_victories}\nVictoires en 3v3: {player.x3vs3_victories}")
-        emb.add_field(name="Brawlers", value=f"Nombre de Brawlers: {len(playername.brawlers)}\n", inline=True)
-        emb.set_footer(text=disclient.user, icon_url=disclient.user.avatar)
-        emb.set_thumbnail(url=icon_class)
-        await interaction.response.send_message(embed=emb, ephemeral=True)
 
 ##commands
 #ping
@@ -310,7 +281,7 @@ async def verify(interaction: discord.Interaction, file: discord.Attachment):
         await channel.send(embed=emb, view=(verifyview(e, interaction)))
     else:
         await interaction.response.send_message("le fichier que tu as envoyé doit être une image, et ce n'est pas le cas. réessaie s'il te plait",ephemeral=True)
-        
+
 class verifyview(discord.ui.View):
     def __init__(self, e, interaction):
         self.interaction = interaction
@@ -351,6 +322,41 @@ class ReportModal(discord.ui.Modal, title="signalement"):
         await chat.send(embed=emb) # type: ignore
         await interaction.response.send_message(content=f"ton signalement a bien été envoyé {interaction.user.display_name}", ephemeral=True)
 
+@disclient.tree.command(name="get_club_profile", description="permet d'obtenir des infos sur un club Brawl Stars", guild=guild_id1)
+@app_commands.describe(tag="le tag du club (#xxxxxxx) sans le #")
+async def club(interaction: discord.Interaction, tag: str):
+    bs_token = os.getenv("bs_api_token")
+    bsclient = brst.Client(token=bs_token, is_async=True)
+
+    bstag = tag.upper()
+    club = await bsclient.get_club(bstag)
+
+
+    playeremb = discord.Embed(title=club.name, description=f"Tag: {club.tag}\n\n<:bstrophy:1141793310055350353> Trophées: {club.trophies} Trophées requis: {club.required_trophies}\nClub: {club.name} Tag: {club.tag}")
+    print(club.icon)
+    icon_class = str(club.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
+
+    playeremb.set_thumbnail(url = icon_class)
+
+    await interaction.response.send_message(embed=playeremb)
+
+@disclient.tree.command(name="get_user_profile", description="permet d'obtenir des infos sur un utilisateur Brawl Stars", guild=guild_id1)
+@app_commands.describe(tag="le tag du joueur (#xxxxxxx) sans le #")
+async def bs(interaction: discord.Interaction, tag: str):
+    bs_token = os.getenv("bs_api_token")
+    bsclient = brst.Client(token=bs_token, is_async=True)
+    bstag = tag.upper()
+    club = await bsclient.get_player(bstag)
+
+    playeremb = discord.Embed(title=club.name, description=f"Tag: {club.tag}\n\n<:bstrophy:1141793310055350353> Trophées: {club.trophies} Trophées requis: {club.required_trophies}\nClub: {club.name} Tag: {club.tag}")
+    print(club.icon)
+    icon_class = str(club.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
+
+    playeremb.set_thumbnail(url = icon_class)
+
+    await interaction.response.send_message(embed=playeremb)
+
+
 @disclient.tree.context_menu(name="Report", guild=guild_id1)
 async def report(interaction: discord.Interaction, message: discord.Message):
     msg = message
@@ -374,6 +380,27 @@ async def pins(interaction: discord.Interaction, message: discord.Message):
     await interaction.response.send_modal(say(msg))
 
 #auto events
+
+@tasks.loop(minutes=5)
+async def bsprofile():
+    bs_token = os.getenv("bs_api_token")
+    bsclient = brst.Client(token=bs_token, is_async=True)
+    tag1 = await bsclient.get_club("2G2YQVUGY")
+    channel = disclient.get_channel(1139983485579300984)
+    msg = await channel.fetch_message(1142420665325068319)
+    desc1= tag1.description.replace("<c7>","").replace("</c>","").replace("<c8>","").replace("|"," | ").replace("<c5>","")
+    astraclubemb = discord.Embed(title =f"<:astra:1141773764854562816>  **{tag1.name}** <:astra:1141773764854562816> ", description = f"<:gdc:1141774959291670692>  League: <:bronze:1141793095789326356>I\n\n{(desc1)}", color = discord.Color.gold(), timestamp=datetime.datetime.now())
+    astraclubemb.add_field(name="Trophées <:bstrophy:1141793310055350353>", value=f"Trophées totaux: {tag1.trophies}\nTrophées requis: {tag1.required_trophies}", inline=True)
+    astraclubemb.set_footer(text=f"dernière actualisation")
+    tag2 = await bsclient.get_club("2GGLR9CCP")
+    desc2= tag2.description.replace("<c7>","").replace("</c>","").replace("<c8>","").replace("|"," | ").replace("<c5>","")
+    academyclubemb = discord.Embed(title=f"<:astra:1141773764854562816>  **{tag2.name}** <:astra:1141773764854562816> ", description = f"<:gdc:1141774959291670692>  League: <:masters:1141775863537471568>\n\n{(desc2)}", color = discord.Color.orange())
+    academyclubemb.add_field(name="Trophées <:bstrophy:1141793310055350353>", value=f"Trophées totaux: {tag2.trophies}\nTrophées minimum requis: {tag2.required_trophies}", inline=True)
+    academyclubemb.set_thumbnail(url="https://cdn-old.brawlify.com/profile/28000020.png")
+    await bsclient.close()
+    emblist = [academyclubemb, astraclubemb]
+    await msg.edit(embeds=emblist)
+
 @disclient.event
 async def on_message_edit(before, after):
     if before.author == disclient.user:
@@ -420,7 +447,7 @@ async def on_ready():
     print("="*10 + " Build Infos " + "="*10)
     print(f"Connecté en tant que {disclient.user.display_name} ({disclient.user.id})")
     print(f"Discord info : {discord.version_info.releaselevel}")
-    activity = discord.Activity(type = discord.ActivityType.watching, name=f"Astra Academy")
+    activity = discord.Activity(type=discord.ActivityType.watching, name=f"Astra Family")
     await disclient.change_presence(activity=activity, status=discord.Status.online)
-
+    await bsprofile.start()
 disclient.run(str(DISCORD_TOKEN))
