@@ -8,9 +8,12 @@ import asyncio
 from dotenv import load_dotenv
 from typing import Optional
 
+import io
+from io import BytesIO
+
 #Import de discord et modules discord
 import discord 
-from discord import app_commands, Webhook
+from discord import app_commands, Webhook, errors
 from discord.ext import tasks
 from discord.gateway import DiscordWebSocket, _log
 #Import des API
@@ -356,7 +359,22 @@ async def bs(interaction: discord.Interaction, tag: str):
 
     await interaction.response.send_message(embed=playeremb)
 
+@disclient.tree.command(name="webhooktest", description="ouais c'est Greg", guild=guild_id1)
+async def send_webhook(interaction: discord.Interaction, channel: discord.TextChannel):
 
+    webhookcrea = await channel.create_webhook(name="test")
+
+    emb = discord.Embed(title="Title", description="Description")
+    emb.add_field(name="Field 1", value="Value 1")
+    emb.add_field(name="Field 2", value="Value 2")
+    try:
+        await webhookcrea.send(embed=emb)
+    except errors as pe:
+        await interaction.response.send_message(content=f"une erreur est survenue : {pe}", ephemeral=True)
+        await webhookcrea.delete()
+    else:
+        await interaction.response.send_message(content="webhook envoyé", ephemeral=True)
+        await webhookcrea.delete()
 @disclient.tree.context_menu(name="Report", guild=guild_id1)
 async def report(interaction: discord.Interaction, message: discord.Message):
     msg = message
