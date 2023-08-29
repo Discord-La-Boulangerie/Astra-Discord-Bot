@@ -90,7 +90,7 @@ class MyClient(discord.Client):
 #        self.add_view(permaview())
         await self.tree.sync(guild=guild_id1)
         await self.tree.sync()
-
+        
 intents = discord.Intents.all()
 disclient = MyClient(intents=intents)
 guild_id = 1104309851775049728
