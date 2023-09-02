@@ -343,17 +343,33 @@ async def club(interaction: discord.Interaction, tag: str):
 
     await interaction.response.send_message(embed=playeremb)
 
-@disclient.tree.command(name="get_user_profile", description="permet d'obtenir des infos sur un utilisateur Brawl Stars", guild=guild_id1)
-@app_commands.describe(tag="le tag du joueur (#xxxxxxx) sans le #")
-async def bs(interaction: discord.Interaction, tag: str):
+@client.tree.command(name="profil", description="Voir le profil Brawl Stars de qlqun", guild=guild_id1)
+async def test(interaction: discord.Interaction, tag:str):
+
     bs_token = os.getenv("bs_api_token")
     bsclient = brst.Client(token=bs_token, is_async=True)
-    bstag = tag.upper()
-    club = await bsclient.get_player(bstag)
 
-    playeremb = discord.Embed(title=club.name, description=f"Tag: {club.tag}\n\n<:bstrophy:1141793310055350353> Trophées: {club.trophies} Trophées requis: {club.required_trophies}\nClub: {club.name} Tag: {club.tag}")
-    print(club.icon)
-    icon_class = str(club.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
+    bstag = tag.upper().replace("#", "")
+    player = await bsclient.get_profile(bstag)
+    club = await player.get_club()
+
+    hexcolorlist = ["0xffa2e3fe","0xffffffff","0xff4ddba2","0xffff9727","0xfff9775d","0xfff05637","0xfff9c908","0xffffce89","0xffa8e132","0xff1ba5f5","0xffff8afb","0xffcb5aff"]
+    namecolorlist = [discord.Color.blue(), discord.Color.light_embed(), discord.Color.dark_green(), discord.Color.orange(), discord.Color.red(),discord.Color.dark_red(),discord.Color.yellow(),discord.Color.default(),discord.Color.green(),discord.Color.dark_blue(),discord.Color.pink(),discord.Color.purple()]
+
+    i = 0
+
+    while not player.name_color == hexcolorlist[i]:
+        i = i + 1
+
+    playcolor = namecolorlist[i]
+
+    if club == None:  # Player n'a pas de club?
+        playeremb = discord.Embed(title=f"**Profil de {player.name}**", description=f"**Tag:** {player.tag}\n\n<:bstrophy:1141793310055350353> **Trophées:** ``{player.trophies}``\n<:bstrophy:1141793310055350353> **Record Personel:** {player.highest_trophies}\n\n<:club:1143949868147154944> **Club:** Aucun\n\n**Victoires en Showdown:**\n<:showdown:1142850368276025374> {player.solo_victories} <:duo_showdown:1142851071740485683> {player.duo_victories}\n\n**Victoires en 3v3:** \n<:3v3:1142851875503341618> {player.x3vs3_victories}\n\n **Brawlers:** {len(player.brawlers)}/70", color=playcolor)
+    else:
+        playeremb = discord.Embed(title=f"**Profil de {player.name}**", description=f"**Tag:** {player.tag}\n\n<:bstrophy:1141793310055350353> **Trophées:** {player.trophies}\n<:bstrophy:1141793310055350353> **Record Personel:** {player.highest_trophies}\n\n<:club:1143949868147154944> **Club:** {club.name} ({club.tag})\n\n**Victoires en Showdown:**\n<:showdown:1142850368276025374> {player.solo_victories} <:duo_showdown:1142851071740485683> {player.duo_victories}\n\n**Victoires en 3v3:** \n<:3v3:1142851875503341618> {player.x3vs3_victories}\n\n **Brawlers:** {len(player.brawlers)}/70", color=playcolor)
+    
+    
+    icon_class = str(player.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
 
     playeremb.set_thumbnail(url = icon_class)
 
