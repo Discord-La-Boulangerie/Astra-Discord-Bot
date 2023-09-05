@@ -274,37 +274,35 @@ async def sync(interaction: discord.Interaction):
 @app_commands.rename(file="fichier")
 async def verify(interaction: discord.Interaction, file: discord.Attachment):
     if file.content_type == "image/png" or "image/jpeg" :
-        e = interaction.user.id
         channel = disclient.get_channel(1139911542616367179)
         emb = discord.Embed(title="Demande de vérification", timestamp=datetime.datetime.now())
         emb.set_image(url=file)
         emb.set_author(name=interaction.user.display_name, icon_url=interaction.user.display_avatar)
         emb.set_footer(text=disclient.user, icon_url=disclient.user.avatar)
         await interaction.response.send_message("ta demande a bien été envoyée. :thumbsup:",ephemeral=True)
-        await channel.send(embed=emb, view=(verifyview(e, interaction)))
+        await channel.send(embed=emb, view=(verifyview(interaction)))
     else:
         await interaction.response.send_message("le fichier que tu as envoyé doit être une image, et ce n'est pas le cas. réessaie s'il te plait",ephemeral=True)
 
 class verifyview(discord.ui.View):
-    def __init__(self, e, interaction):
+    def __init__(self, interaction):
         self.interaction = interaction
-        self.e = e
         super().__init__()
     @discord.ui.button(label="Valider", style=discord.ButtonStyle.green)
     async def on_click1(self, interaction: discord.Interaction, button: discord.ui.Button):
-        role = await discord.utils.get(interaction.guild.roles, id=1104312217224085556) #type: ignore
+        role = self.interaction.guild.get_role(1104312217224085556)
         emb = discord.Embed(title="Félicitation", description=f"tu as été accepté sur {self.interaction.guild.name}!", timestamp=datetime.datetime.now(), color=discord.Color.green())
         emb.set_author(name=f"{self.interaction.guild.name}", url=self.interaction.guild.icon)
         emb.set_footer(text=disclient.user, icon_url=disclient.user.avatar)
-        await interaction.user.edit(roles=role)
-        await self.e.send(embed=emb)
+        await self.interaction.user.edit(roles=role)
+        await self.interaction.user.send(embed=emb)
     
     @discord.ui.button(label="Invalider", style=discord.ButtonStyle.red)
     async def on_click2(self, interaction: discord.Interaction, button: discord.ui.Button):
         emb = discord.Embed(title="Désolé...", description=f"tu as été refusé sur {self.interaction.guild.name}! :confused:", timestamp=datetime.datetime.now(), color=discord.Color.green())
         emb.set_author(name=f"{self.interaction.guild.name}", url=self.interaction.guild.icon)
         emb.set_footer(text=disclient.user, icon_url=disclient.user.avatar)
-        await self.e.kick(reason="n'est pas présent sur le club")
+        await self.interaction.user.kick(reason="n'est pas présent sur le club")
  
 #report system
 
@@ -348,6 +346,7 @@ async def test(interaction: discord.Interaction, tag:str):
 
     bs_token = os.getenv("bs_api_token")
     bsclient = brst.Client(token=bs_token, is_async=True)
+<<<<<<< Updated upstream
 
     bstag = tag.upper().replace("#", "")
     player = await bsclient.get_profile(bstag)
@@ -370,6 +369,14 @@ async def test(interaction: discord.Interaction, tag:str):
     
     
     icon_class = str(player.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
+=======
+    bstag = tag.upper()
+    club = await bsclient.get_player(bstag)
+    club.
+    playeremb = discord.Embed(title=club.name, description=f"Tag: {club.tag}\n\n<:bstrophy:1141793310055350353> Trophées: {club.trophies} Trophées requis: {club.required_trophies}\nClub: {club.name} Tag: {club.tag}")
+    print(club.icon)
+    icon_class = str(club.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
+>>>>>>> Stashed changes
 
     playeremb.set_thumbnail(url = icon_class)
 
