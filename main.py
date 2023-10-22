@@ -17,9 +17,16 @@ from discord import app_commands, Webhook, errors
 from discord.ext import tasks
 from discord.gateway import DiscordWebSocket, _log
 #Import des API
-import blagues_api as bl
+#import blagues_api as bl
 import brawlstats as brst
 #paramètres
+
+#emotes
+clubicon = "<:astra:1141773764854562816>"
+bstrophy = "<:bstrophy:1141773478899499138>"
+club = "<:club:1143949868147154944>" 
+members = "<:members:1143961197113253908>"
+recordtrophy = "<:besttrophy:1151933085730996234>"
 
 #mobile status
 async def identify(self):
@@ -341,12 +348,11 @@ async def club(interaction: discord.Interaction, tag: str):
 
     await interaction.response.send_message(embed=playeremb)
 
-@client.tree.command(name="profil", description="Voir le profil Brawl Stars de qlqun", guild=guild_id1)
+@disclient.tree.command(name="profil", description="Voir le profil Brawl Stars de qlqun", guild=guild_id1)
 async def test(interaction: discord.Interaction, tag:str):
 
     bs_token = os.getenv("bs_api_token")
     bsclient = brst.Client(token=bs_token, is_async=True)
-<<<<<<< Updated upstream
 
     bstag = tag.upper().replace("#", "")
     player = await bsclient.get_profile(bstag)
@@ -369,14 +375,6 @@ async def test(interaction: discord.Interaction, tag:str):
     
     
     icon_class = str(player.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
-=======
-    bstag = tag.upper()
-    club = await bsclient.get_player(bstag)
-    club.
-    playeremb = discord.Embed(title=club.name, description=f"Tag: {club.tag}\n\n<:bstrophy:1141793310055350353> Trophées: {club.trophies} Trophées requis: {club.required_trophies}\nClub: {club.name} Tag: {club.tag}")
-    print(club.icon)
-    icon_class = str(club.icon).replace("{'id': ","https://cdn-old.brawlify.com/profile/").replace("}",".png")
->>>>>>> Stashed changes
 
     playeremb.set_thumbnail(url = icon_class)
 
@@ -426,19 +424,20 @@ async def pins(interaction: discord.Interaction, message: discord.Message):
 async def bsprofile():
     bs_token = os.getenv("bs_api_token")
     bsclient = brst.Client(token=bs_token, is_async=True)
-    tag1 = await bsclient.get_club("2G2YQVUGY")
+
     channel = disclient.get_channel(1139983485579300984)
     msg = await channel.fetch_message(1142420665325068319)
-    desc1= tag1.description.replace("<c7>","").replace("</c>","").replace("<c8>","").replace("|"," | ").replace("<c5>","")
-    astraclubemb = discord.Embed(title =f"<:astra:1141773764854562816>  **{tag1.name}** <:astra:1141773764854562816> ", description = f"<:gdc:1141774959291670692>  League: <:bronze:1141793095789326356>I\n\n{(desc1)}", color = discord.Color.gold(), timestamp=datetime.datetime.now())
-    astraclubemb.add_field(name="Trophées <:bstrophy:1141793310055350353>", value=f"Trophées totaux: {tag1.trophies}\nTrophées requis: {tag1.required_trophies}", inline=True)
-    astraclubemb.set_footer(text=f"dernière actualisation")
-    tag2 = await bsclient.get_club("2GGLR9CCP")
-    desc2= tag2.description.replace("<c7>","").replace("</c>","").replace("<c8>","").replace("|"," | ").replace("<c5>","")
-    academyclubemb = discord.Embed(title=f"<:astra:1141773764854562816>  **{tag2.name}** <:astra:1141773764854562816> ", description = f"<:gdc:1141774959291670692>  League: <:masters:1141775863537471568>\n\n{(desc2)}", color = discord.Color.orange())
-    academyclubemb.add_field(name="Trophées <:bstrophy:1141793310055350353>", value=f"Trophées totaux: {tag2.trophies}\nTrophées minimum requis: {tag2.required_trophies}", inline=True)
-    academyclubemb.set_thumbnail(url="https://cdn-old.brawlify.com/profile/28000020.png")
-    await bsclient.close()
+    astraclub = await bsclient.get_club("2GGLR9CCP")
+    academyclub = await bsclient.get_club("2G2YQVUGY")
+
+    familyemb = discord.Embed(title= f"Astra Family", description=f"\n{club} Nombre de Clubs: 2\n{bstrophy} Nbr de Tr Totaux: {astraclub.trophies+academyclub.trophies}\n{bstrophy} Tr Réquis en Moyenne: {(astraclub.required_trophies+academyclub.required_trophies)/2}\n{members} Membres en Tout: {len(astraclub.members)+len(academyclub.members)}/60", color=discord.Color.orange())
+    familyemb.set_thumbnail(url="https://cdn-old.brawlify.com/profile/28000020.png")
+
+    astraclubemb = discord.Embed(title =f"{clubicon} {astraclub.name} {clubicon}", description=f"[(#2GGLR9CCP)](https://brawlify.com/stats/club/2GGLR9CCP)\nPrésident : <@793183664858071040>\n{bstrophy} Trophées: {astraclub.trophies}\n{bstrophy} Trophées Réquis: {astraclub.required_trophies}\nType: {astraclub.type}\n{members} Membres: {len(astraclub.members)}", color=discord.Color.orange())
+    academyclubemb = discord.Embed(title=f"{clubicon} {academyclub.name} {clubicon}", description=f"[(#2G2YQVUGY)](https://brawlify.com/stats/club/2G2YQVUGY)\nPrésident : <@911467405115535411>\n{bstrophy} Trophées: {academyclub.trophies}\n{bstrophy} Trophées Réquis: {academyclub.required_trophies}\nType: {academyclub.type}\n{members} Membres: {len(academyclub.members)}", color=discord.Color.orange(), timestamp=datetime.datetime.now())
+    academyclubemb.set_footer(text=f"dernière actualisation")
+   
+    emblist = [familyemb, astraclubemb, academyclubemb]
     emblist = [academyclubemb, astraclubemb]
     await msg.edit(embeds=emblist)
 
