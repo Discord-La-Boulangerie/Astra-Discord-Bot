@@ -19,7 +19,25 @@ from discord.gateway import DiscordWebSocket, _log
 #Import des API
 #import blagues_api as bl
 import brawlstats as brst
-#paramètres
+
+#defs
+def clean(rawstr):
+    rawstr = str(rawstr)
+    i = len(rawstr)
+    cleanstr = ""
+
+    if len(rawstr) >  3:
+        while i > 0:
+            i = i - 3
+            cleanstr = f"'{rawstr[i]}{rawstr[i+1]}{rawstr[i+2]}{cleanstr}"
+            if i < 4:
+                while not i == 0:
+                    i = i - 1
+                    cleanstr = f"{rawstr[i]}{cleanstr}"
+    if len(rawstr) < 4:
+        cleanstr = rawstr
+    
+    return cleanstr
 
 #emotes
 clubicon = "<:astra:1141773764854562816>"
@@ -427,18 +445,19 @@ async def bsprofile():
 
     channel = disclient.get_channel(1139983485579300984)
     msg = await channel.fetch_message(1142420665325068319)
+
     astraclub = await bsclient.get_club("2GGLR9CCP")
     academyclub = await bsclient.get_club("2G2YQVUGY")
 
-    familyemb = discord.Embed(title= f"Astra Family", description=f"\n{club} Nombre de Clubs: 2\n{bstrophy} Nbr de Tr Totaux: {astraclub.trophies+academyclub.trophies}\n{bstrophy} Tr Réquis en Moyenne: {(astraclub.required_trophies+academyclub.required_trophies)/2}\n{members} Membres en Tout: {len(astraclub.members)+len(academyclub.members)}/60", color=discord.Color.orange())
+    familyemb = discord.Embed(title= f"Astra Family", description=f"\n<:club:1143949868147154944> Nombre de Clubs: 2\n{bstrophy} Nbr de Tr Totaux: {clean(astraclub.trophies+academyclub.trophies)}\n{bstrophy} Tr Réquis en Moyenne: {clean((astraclub.required_trophies+academyclub.required_trophies)//2)}\n{members} Membres en Tout: {len(astraclub.members)+len(academyclub.members)}/60", color=discord.Color.orange())
     familyemb.set_thumbnail(url="https://cdn-old.brawlify.com/profile/28000020.png")
 
-    astraclubemb = discord.Embed(title =f"{clubicon} {astraclub.name} {clubicon}", description=f"[(#2GGLR9CCP)](https://brawlify.com/stats/club/2GGLR9CCP)\nPrésident : <@793183664858071040>\n{bstrophy} Trophées: {astraclub.trophies}\n{bstrophy} Trophées Réquis: {astraclub.required_trophies}\nType: {astraclub.type}\n{members} Membres: {len(astraclub.members)}", color=discord.Color.orange())
-    academyclubemb = discord.Embed(title=f"{clubicon} {academyclub.name} {clubicon}", description=f"[(#2G2YQVUGY)](https://brawlify.com/stats/club/2G2YQVUGY)\nPrésident : <@911467405115535411>\n{bstrophy} Trophées: {academyclub.trophies}\n{bstrophy} Trophées Réquis: {academyclub.required_trophies}\nType: {academyclub.type}\n{members} Membres: {len(academyclub.members)}", color=discord.Color.orange(), timestamp=datetime.datetime.now())
+    astraclubemb = discord.Embed(title =f"{clubicon} {astraclub.name} {clubicon}", description=f"[(#2GGLR9CCP)](https://brawlify.com/stats/club/2GGLR9CCP)\nPrésident : <@793183664858071040>\n{bstrophy} Trophées: {clean(astraclub.trophies)}\n{bstrophy} Trophées Réquis: {clean(astraclub.required_trophies)}\nType: {astraclub.type}\n{members} Membres: {len(astraclub.members)}", color=discord.Color.orange())
+    academyclubemb = discord.Embed(title=f"{clubicon} {academyclub.name} {clubicon}", description=f"[(#2G2YQVUGY)](https://brawlify.com/stats/club/2G2YQVUGY)\nPrésident : <@911467405115535411>\n{bstrophy} Trophées: {clean(academyclub.trophies)}\n{bstrophy} Trophées Réquis: {clean(academyclub.required_trophies)}\nType: {academyclub.type}\n{members} Membres: {len(academyclub.members)}", color=discord.Color.orange(), timestamp=datetime.datetime.now())
     academyclubemb.set_footer(text=f"dernière actualisation")
    
     emblist = [familyemb, astraclubemb, academyclubemb]
-    emblist = [academyclubemb, astraclubemb]
+
     await msg.edit(embeds=emblist)
 
 @disclient.event
